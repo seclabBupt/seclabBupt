@@ -1,0 +1,36 @@
+name: Deploy GitBook to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main  # 当你 push 到 main 分支时自动部署
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '14'
+
+      - name: Install GitBook CLI
+        run: npm install -g gitbook-cli
+
+      - name: Install dependencies
+        run: |
+          npm install
+          gitbook install
+
+      - name: Build GitBook
+        run: gitbook build
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./_book
