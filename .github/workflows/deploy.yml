@@ -1,4 +1,4 @@
-name: GitBook Build
+name: GitBook Build and Deploy
 
 on:
   push:
@@ -24,8 +24,12 @@ jobs:
       - name: Install project dependencies
         run: npm install
 
-      - name: Fix audit vulnerabilities (optional)
-        run: npm audit fix
-
       - name: Build GitBook
         run: gitbook build
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./_book
+          publish_branch: gh-pages
