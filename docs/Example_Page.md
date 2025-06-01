@@ -27,7 +27,7 @@ public class Test {
 
 ---
 
-![example picture](/images/img.png)
+![example picture](./images/img.png)
  *figure 1*
 
 This is a formula:
