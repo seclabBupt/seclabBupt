@@ -1,37 +1,37 @@
 name: GitBook Build and Deploy
-
 on:
   push:
     branches:
       - main
-
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-
-      - name: Setup Node.js 10
+      - name: Setup Node.js 18
         uses: actions/setup-node@v3
         with:
-          node-version: '10'
-
+          node-version: '10' 
       - name: Install gitbook-cli globally
         run: npm install -g gitbook-cli
-
       - name: Install project dependencies
         run: |
           cd docs
           npm install
           gitbook install
-
       - name: Build GitBook
         run: |
           cd docs
           gitbook build
-
+      - name: List build output
+        run: |
+          echo "Current directory:"
+          pwd
+          echo "Docs directory contents:"
+          ls -la docs/
+          echo "_book directory contents:"
+          ls -la docs/_book/ || echo "_book directory not found"
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
