@@ -24,14 +24,27 @@ jobs:
         run: |
           cd docs
           gitbook build
-      - name: List build output
+      - name: 复制图片和其他资源文件
         run: |
-          echo "Current directory:"
-          pwd
-          echo "Docs directory contents:"
-          ls -la docs/
-          echo "_book directory contents:"
-          ls -la docs/_book/ || echo "_book directory not found"
+          # 复制 images 文件夹到 _book 目录
+          if [ -d "docs/images" ]; then
+            cp -r docs/images docs/_book/
+            echo "图片文件夹已复制"
+          else
+            echo "警告：没有找到 images 文件夹"
+          fi
+          
+          # 检查复制结果
+          echo "=== _book 中的图片文件 ==="
+          find docs/_book -name "*.png" -o -name "*.jpg" -o -name "*.gif" -o -name "*.svg"
+            - name: List build output
+              run: |
+                echo "Current directory:"
+                pwd
+                echo "Docs directory contents:"
+                ls -la docs/
+                echo "_book directory contents:"
+                ls -la docs/_book/ || echo "_book directory not found"
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
