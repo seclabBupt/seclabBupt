@@ -23,18 +23,15 @@ jobs:
 
       - name: Install project dependencies
         run: |
-          cd docs
           npm install
           gitbook install
 
       - name: Build GitBook
-        run: |
-          cd docs
-          gitbook build
+        run: gitbook build
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs/_book
+          publish_dir: ./_book
           publish_branch: gh-pages
