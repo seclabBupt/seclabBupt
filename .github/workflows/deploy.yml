@@ -9,42 +9,66 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        
       - name: Setup Node.js 18
         uses: actions/setup-node@v3
         with:
-          node-version: '10' 
+          node-version: '18'
+          
       - name: Install gitbook-cli globally
         run: npm install -g gitbook-cli
+        
       - name: Install project dependencies
         run: |
           cd docs
           npm install
           gitbook install
+          
       - name: Build GitBook
         run: |
           cd docs
           gitbook build
-      - name: 复制图片和其他资源文件
+          
+      - name: 检查文件结构和复制图片
         run: |
-          # 复制 images 文件夹到 _book 目录
-          if [ -d "docs/images" ]; then
-            cp -r docs/images docs/_book/
-            echo "图片文件夹已复制"
+          echo "=== 检查根目录的 images 文件夹 ==="
+          if [ -d "images" ]; then
+            echo "找到根目录的 images 文件夹"
+            ls -la images/
           else
-            echo "警告：没有找到 images 文件夹"
+            echo "根目录没有 images 文件夹"
           fi
           
-          # 检查复制结果
-          echo "=== _book 中的图片文件 ==="
-          find docs/_book -name "*.png" -o -name "*.jpg" -o -name "*.gif" -o -name "*.svg"
-            - name: List build output
-              run: |
-                echo "Current directory:"
-                pwd
-                echo "Docs directory contents:"
-                ls -la docs/
-                echo "_book directory contents:"
-                ls -la docs/_book/ || echo "_book directory not found"
+          echo "=== 检查 _book 构建结果 ==="
+          ls -la docs/_book/
+          
+          echo "=== 复制根目录的 images 到 _book ==="
+          if [ -d "images" ]; then
+            cp -r images docs/_book/
+            echo "images 文件夹已复制到 _book"
+          fi
+          
+          echo "=== 复制其他可能的图片文件 ==="
+          find . -maxdepth 2 -name "*.png" -o -name "*.jpg" -o -name "*.gif" -o -name "*.svg" | grep -v node_modules | grep -v .git | grep -v _book | while read file; do
+            echo "发现图片文件: $file"
+            # 获取文件名
+            filename=$(basename "$file")
+            # 获取目录路径（相对于根目录）
+            dirpath=$(dirname "$file")
+            # 如果不是根目录的文件，需要创建对应目录
+            if [ "$dirpath" != "." ]; then
+              mkdir -p "docs/_book/$dirpath"
+              cp "$file" "docs/_book/$file"
+              echo "复制 $file 到 docs/_book/$file"
+            else
+              cp "$file" "docs/_book/"
+              echo "复制 $file 到 docs/_book/"
+            fi
+          done
+          
+          echo "=== 最终检查 _book 中的图片文件 ==="
+          find docs/_book -name "*.png" -o -name "*.jpg" -o -name "*.gif" -o -name "*.svg" | grep -v fontawesome
+          
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
@@ -52,4 +76,3 @@ jobs:
           publish_dir: ./docs/_book
           publish_branch: gh-pages
           force_orphan: true
-
