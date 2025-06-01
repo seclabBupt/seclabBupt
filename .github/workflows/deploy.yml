@@ -10,10 +10,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
         
-      - name: Setup Node.js 18
+      - name: Setup Node.js 10
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: '10'
           
       - name: Install gitbook-cli globally
         run: npm install -g gitbook-cli
