@@ -5,7 +5,9 @@ https://github.com/KEKE046/mlir-tutorial
 
 https://www.bilibili.com/video/BV1JCZzYFEEJ/?share_source=copy_web&vd_source=4d9d633c1e01e9c9b929fe8311e2ad5b
 
+
 # 一、自定义Dialect
+
 
 ## 1. 定义 Dialect
 ### 1.1 概念解释
@@ -291,6 +293,7 @@ module {
 用mlir-opt测试
 ```bash
 mlir-opt test/my_ops.mlir -load-pass-plugin ./MyDialect.so -some-pass
+
 ```
 
 
@@ -609,4 +612,5 @@ func.func @fill_tensor(%cst: f32) -> tensor<4x4xf32> {
   %filled = linalg.fill ins(%cst: f32) outs(%empty: tensor<4x4xf32>) -> tensor<4x4xf32>
   return %filled : tensor<4x4xf32>
 }
+
 ```
