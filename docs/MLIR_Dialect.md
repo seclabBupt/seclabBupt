@@ -6,6 +6,8 @@ https://github.com/KEKE046/mlir-tutorial
 https://www.bilibili.com/video/BV1JCZzYFEEJ/?share_source=copy_web&vd_source=4d9d633c1e01e9c9b929fe8311e2ad5b
 
 
+# 一、自定义Dialect
+
 
 ## 1. 定义 Dialect
 ### 1.1 概念解释
@@ -291,4 +293,324 @@ module {
 用mlir-opt测试
 ```bash
 mlir-opt test/my_ops.mlir -load-pass-plugin ./MyDialect.so -some-pass
+
+```
+
+
+
+# 二、MLIR附带dialect
+| Dialect   | 作用                   | 举例                                   |
+| --------- | -------------------- | ------------------------------------ |
+| `builtin` | 提供基础元素，如 module、func | `module`, `func.func`, `func.return` |
+| `arith`   | 标量计算，如加法、乘法          | `arith.addf`, `arith.constant`       |
+| `scf`     | 控制流，如 for、if、while   | `scf.for`, `scf.if`                  |
+| `memref`  | 显式内存管理               | `memref.alloc`, `memref.load`        |
+| `tensor`  | 隐式内存、张量类型            | `tensor.extract`, `tensor.insert`    |
+| `linalg`  | 高层次张量操作（线性代数）        | `linalg.matmul`, `linalg.generic`    |
+| `cf`      | 低层次控制流               | `cf.br`, `cf.cond_br`（非结构化）          |
+
+
+## 1. builtin Dialect 详解（内建 Dialect）
+### 1.1 定义
+builtin 是 MLIR 的内建基础 Dialect。它提供了最核心的抽象元素：module、func、tensor、基本类型等。几乎任何 MLIR 代码都会用到它，即使是自定义 Dialect也要建立在它提供的结构上。
+
+不是通过 TableGen 来定义 Op 的 Dialect（不像 arith 或 linalg），而是直接由 MLIR 核心写死的基础内容，因此叫“builtin”。
+
+### 1.2 提供内容
+**主要OP**
+
+`builtin.module` 和`func.func` 最常用。module 是顶层容器，代表一段 IR 单元。不支持嵌套，一个 module 内不能再有 module,通常作为 mlir-opt 或 mlir-translate 的输入单元。`func`是函数Op，可以包含多个 block。
+| Op                                   | 说明                                                                     |
+| ------------------------------------ | ---------------------------------------------------------------------- |
+| `builtin.module`                     | 模块顶层容器                   |
+| `func.func`                          | 函数定义，包含参数、返回值、函数体。<br>（虽然形式上属于 `func` Dialect，但内嵌在 `builtin.module` 中） |
+| `builtin.unrealized_conversion_cast` | IR 变换中的“虚转换”，用于类型未解决的桥接。<br>（高级用法）                                     |
+
+**主要类型Type**
+
+这些都是内建的类型，都是由 builtin Dialect 统一提供。
+| 类型                         | 示例                  | 说明                     |
+| -------------------------- | ------------------- | ---------------------- |
+| `i32`, `i64`, `f32`, `f64` | `i32`, `f32`        | 基本整数和浮点类型              |
+| `function`                 | `(f32, f32) -> f32` | 函数类型，用于 `func.func` 声明 |
+
+### 1.3 示例
+```
+module {
+  func.func @add(%arg0: f32, %arg1: f32) -> f32 {
+    %sum = arith.addf %arg0, %arg1 : f32
+    return %sum : f32
+  }
+}
+
+```
+说明：
+- module {} 是顶层结构，由 builtin.module 提供。
+
+- 里面可以包含一个或多个函数 func.func。
+
+- 所有的变量如 %arg0、%sum 都是 SSA 变量
+
+## 2. arith Dialect（算术运算 Dialect）
+
+### 2.1 定义
+arith 是 MLIR 中用于标量级算术运算的 Dialect。提供了熟悉的加、减、乘、除、取反、比较等基础操作。对应于 C 语言中的 + - * / == < > 等操作，是编写任何需要“数值运算”的 MLIR 程序的基础。
+
+### 2.2 提供内容
+**主要Op**
+**基础运算类**
+| 操作 | Op 名                             | 示例                             |
+| -- | -------------------------------- | ------------------------------ |
+| 加法 | `arith.addi` / `arith.addf`      | `%r = arith.addi %a, %b : i32` |
+| 减法 | `arith.subi` / `arith.subf`      | `%r = arith.subf %a, %b : f32` |
+| 乘法 | `arith.muli` / `arith.mulf`      | `%r = arith.muli %a, %b : i64` |
+| 除法 | `arith.divsi`（有符号）/ `arith.divf` | `%r = arith.divf %a, %b : f32` |
+
+**常量定义类**
+
+一个 Op 实现了所有标量常量定义，支持任意整数、浮点值。
+| 操作   | Op 名             | 示例                                |
+| ---- | ---------------- | --------------------------------- |
+| 整数常量 | `arith.constant` | `%c1 = arith.constant 1 : i32`    |
+| 浮点常量 | `arith.constant` | `%cf = arith.constant 3.14 : f32` |
+
+**比较类**
+| 操作   | Op 名         | 示例                                    |
+| ---- | ------------ | ------------------------------------- |
+| 浮点比较 | `arith.cmpf` | `%cmp = arith.cmpf olt, %a, %b : f32` |
+| 整数比较 | `arith.cmpi` | `%cmp = arith.cmpi slt, %a, %b : i32` |
+
+### 2.3 示例
+**(1)表示 5 + 3 = 8，类型是 i32。这些值都会被寄存在 SSA 变量中。**
+```mlir
+%a = arith.constant 5 : i32
+%b = arith.constant 3 : i32
+%r = arith.addi %a, %b : i32
+
+```
+**(2)比较 3.0 < 5.0，返回一个 i1 布尔值（true/false 表示结果）。**
+```
+%f1 = arith.constant 3.0 : f32
+%f2 = arith.constant 5.0 : f32
+%cond = arith.cmpf olt, %f1, %f2 : f32
+
+```
+**(3)函数内计算**
+```
+func.func @example() -> i32 {
+  %c1 = arith.constant 1 : i32
+  %c2 = arith.constant 2 : i32
+  %sum = arith.addi %c1, %c2 : i32
+  return %sum : i32
+}
+```
+
+## 3 scf Dialect (Structured Control Flow)
+### 3.1. 定义
+scf提供了 MLIR 中的控制流结构：循环、分支、条件跳转。不是类似汇编那样的“goto”风格，而是更像高级语言里的 if、for、while 结构，结构化，没有 scf Dialect就没法写有控制逻辑的 MLIR 程序。
+
+### 3.2 提供内容
+**常用Op**
+| Op 名                 | 用途            | 类比 C 语言                           |
+| -------------------- | ------------- | --------------------------------- |
+| `scf.if`             | 条件执行分支        | `if (cond) {...} else {...}`      |
+| `scf.for`            | 有边界的计数循环      | `for (i = lb; i < ub; i += step)` |
+| `scf.while`          | 条件控制的循环       | `while (cond) {...}`              |
+| `scf.yield`          | 返回循环体或分支块的结果值 | 类似 `return`                       |
+| `scf.execute_region` | 封闭可嵌套计算块      | 用于嵌套或 region 封闭操作                 |
+
+### 3.3 使用示例
+**计数循环**
+%i 是循环变量，循环从 0 到 <10（不含10），步长为1每次循环中执行一次 %i + %i 的计算
+```
+%zero = arith.constant 0 : i32
+%ten = arith.constant 10 : i32
+%step = arith.constant 1 : i32
+
+scf.for %i = %zero to %ten step %step {
+  %val = arith.addi %i, %i : i32
+}
+
+```
+**条件语句**
+条件判断基于 arith.cmpi / cmpf 等比较结果
+```mlir
+%a = arith.constant 5 : i32
+%b = arith.constant 10 : i32
+%cond = arith.cmpi slt, %a, %b : i32
+
+scf.if %cond {
+  %r = arith.addi %a, %b : i32
+} else {
+  %r = arith.subi %b, %a : i32
+}
+
+```
+
+**条件循环**
+```mlir
+%res = scf.while (%i = %init) : (i32) -> (i32) {
+  %cond = arith.cmpi slt, %i, %limit : i32
+  scf.condition(%cond) %i : i32
+} do {
+  %next = arith.addi %i, %one : i32
+  scf.yield %next : i32
+}
+```
+**scf.yield**
+
+在 scf.for、scf.if、scf.while 的 region 中，用于显式返回结果。多数控制结构都需要一个 scf.yield 作为 region 的结束。比如上面的案例
+```mlir
+scf.for %i = %a to %b step %c {
+  ...
+  scf.yield
+}
+
+```
+
+## 4. memref Dialect(Memory Reference)
+### 4.1 定义
+memref 是 MLIR 中描述内存布局与访问的专用 Dialect。主要负责 MLIR 程序中的内存分配（allocate）、内存访问（load/store）等操作。
+
+### 4.2 内容
+**常见Op**
+| Op 名称                     | 作用简介                       |
+| ------------------------- | -------------------------- |
+| `memref.alloc`            | 在堆上动态分配一段内存        |
+| `memref.alloca`           | 在栈上分配内存                    |
+| `memref.dealloc`          | 显式释放之前分配的内存                |
+| `memref.load`             | 从 memref 内读取值              |
+| `memref.store`            | 将值写入 memref                |
+
+**常见Type**
+| Type 名称                         | 示例                                            | 含义说明                         |
+| ------------------------------- | --------------------------------------------- | ---------------------------- |
+| `memref<shape x element>`       | `memref<4x4xf32>`                             | 多维数组，带形状和元素类型                |
+| `memref<?x?xi32>`               | `?` 表示动态维度                                    | 动态维度 memref                  |
+| `memref<...> with layout`       | `memref<2x3xf32, affine_map<...>>`            | 带自定义访问规则的 memref（布局）         |
+| `memref<...> with strides`      | `memref<2x3xf32, strided<[?, ?], offset: ?>>` | 显式指定内存布局（通过 strides）         |
+| `memref<...> with memory space` | `memref<4xf32, 1>`                            | 在特定内存空间（如 GPU global memory） |
+
+### 4.3 使用案例
+```mlir
+module {
+  func.func @matrix_example() {
+    // 分配一个 4x4 的浮点型矩阵：memref<4x4xf32>
+    %matrix = memref.alloc() : memref<4x4xf32>
+
+    // 定义常数：浮点数和索引
+    %cst = arith.constant 1.0 : f32
+    %c0 = arith.constant 0 : index
+    %c1 = arith.constant 1 : index
+    %c2 = arith.constant 2 : index
+    %c3 = arith.constant 3 : index
+
+    // 将矩阵左上角元素 [0, 0] 赋值为 1.0
+    memref.store %cst, %matrix[%c0, %c0] : memref<4x4xf32>
+
+    // 从 [0, 0] 读取并写入到 [1, 1] 位置（拷贝一份）
+    %val = memref.load %matrix[%c0, %c0] : memref<4x4xf32>
+    memref.store %val, %matrix[%c1, %c1] : memref<4x4xf32>
+
+    // 提取一个从 [1, 1] 开始的 2x2 子矩阵
+    %sub = memref.subview %matrix[%c1, %c1] [2, 2] [1, 1] :
+      memref<4x4xf32> to memref<2x2xf32, strided<[?, ?], offset: ?>>
+
+    // 获取矩阵的第一个维度大小
+    %dim0 = memref.dim %matrix, %c0 : memref<4x4xf32>
+
+    // 类型转换：将静态 memref 转换为动态形状 memref<?x?xf32>
+    %casted = memref.cast %matrix : memref<4x4xf32> to memref<?x?xf32>
+
+    // 释放分配的矩阵
+    memref.dealloc %matrix : memref<4x4xf32>
+
+    return
+  }
+}
+
+```
+
+## 5. tensor Dialect
+### 5.1 定义
+tensor Dialect 提供了一组操作和类型，用来描述不可变（immutable）的多维张量。
+
+### 5.2 内容
+**常见Op**
+| Op 名称                   | 作用简介                       |
+| ----------------------- | -------------------------- |
+| `tensor.empty`          | 创建一个空张量（用于构建新张量）           |
+| `tensor.extract`        | 从张量中提取一个元素                 |
+| `tensor.insert`         | 向张量中插入一个元素                 |
+| `tensor.generate`       | 通过映射函数生成一个新张量              |
+| `tensor.cast`           | 张量类型转换（静态/动态大小转换）          |
+| `tensor.extract_slice`  | 提取张量的一个切片（类似 numpy 切片）     |
+| `tensor.insert_slice`   | 将一个张量插入到另一个张量的子块中          |
+| `tensor.dim`            | 获取张量某一维的大小                 |
+| `tensor.reshape`        | 重塑张量形状（不同于 memref.reshape） |
+| `tensor.expand_shape`   | 增加维度（广播式）                  |
+| `tensor.collapse_shape` | 降低维度（压缩）                   |
+
+**常见Type**
+| Type 名称                   | 示例                | 含义说明                   |
+| ------------------------- | ----------------- | ---------------------- |
+| `tensor<shape x type>`    | `tensor<4x4xf32>` | 固定形状的张量                |
+| `tensor<?x?xf32>`         | 动态形状张量            | ? 表示维度在运行时确定           |
+| `tensor<*xf32>`           | rank 不定张量         | 任意维度，常用于通用张量函数或占位符     |
+
+### 5.3 案例
+构建一个张量，读取、修改和切片
+```mlir
+func.func @tensor_example(%arg0: index, %arg1: index) -> tensor<4xf32> {
+  %c0 = arith.constant 0 : index
+  %c1 = arith.constant 1 : index
+  %cst = arith.constant 1.0 : f32
+
+  // 1. 创建空张量：tensor<4xf32>
+  %tensor = tensor.empty() : tensor<4xf32>
+
+  // 2. 插入元素到 index=1 的位置
+  %tensor2 = tensor.insert %cst into %tensor[%c1] : tensor<4xf32>
+
+  // 3. 提取 index=1 的值
+  %val = tensor.extract %tensor2[%c1] : f32
+
+  // 4. 获取张量维度
+  %dim = tensor.dim %tensor2, %c0 : index
+
+  // 5. 提取一个切片（从1开始，取2个）
+  %slice = tensor.extract_slice %tensor2[1] [2] [1] : 
+      tensor<4xf32> to tensor<2xf32>
+
+  return %tensor2 : tensor<4xf32>
+}
+
+```
+## 6 linalg Dialect
+### 6.1 定义
+linalg（Linear Algebra Dialect）提供了线性代数层级的操作描述，是 MLIR 中进行深度学习建模与优化的主要中间表示（IR）框架，表达张量/矩阵的操作（点乘、矩阵乘、卷积等）。
+
+### 6.2 内容
+**常见Op**
+| Op 名称                      | 作用简述                        |
+| -------------------------- | --------------------------- |
+| `linalg.matmul`            | 标准矩阵乘法（2D \* 2D -> 2D）      |
+| `linalg.batch_matmul`      | 批处理矩阵乘法                     |
+| `linalg.fill`              | 用常数填充张量                     |
+| `linalg.generic`           | 通用 N 维张量操作（自定义计算）           |
+| `linalg.indexed_generic`   | 与 `generic` 类似，但支持 index 访问 |
+| `linalg.conv_2d_nhwc_hwcf` | 卷积操作（常见于 CNN）               |
+| `linalg.transpose`         | 转置张量                        |
+
+**linalg中没有定义新的Type，和tensor、memref这两个dialect里的类型搭配使用**
+
+### 6.3 示例
+用 linalg.fill 创建常量张量
+```mlir
+func.func @fill_tensor(%cst: f32) -> tensor<4x4xf32> {
+  %empty = tensor.empty() : tensor<4x4xf32>
+  %filled = linalg.fill ins(%cst: f32) outs(%empty: tensor<4x4xf32>) -> tensor<4x4xf32>
+  return %filled : tensor<4x4xf32>
+}
+
 ```
