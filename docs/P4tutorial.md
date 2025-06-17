@@ -1013,7 +1013,7 @@ push与pop可以根据以上伪代码进行理解。
 
 
 
-# p4实验相关（持续更新）
+# p4实验相关（持续更新） @Hamid @Clannd
 ## simple_l3运行示例
 ### 常用脚本简介
 - set_sde.bash 是设置P4运行环境的脚本。每次做实验之前需要运行此脚本设置运行环境才能继续进行实验。
@@ -1022,7 +1022,8 @@ push与pop可以根据以上伪代码进行理解。
 - run_bfshell.sh是启动交换机控制命令行的脚本。
 - p4_build.sh 是编译P4文件的脚本。
 
-![picture 1](./images/p4脚本.png)
+![picture 1](images/p4_script.png)
+
 ### 交换机配置
 ```shell
 cd onl-bf-sde
@@ -1030,12 +1031,16 @@ cd onl-bf-sde
 ./p4_build.sh simple_l3/simple_l3.p4
 ```
 结果显示DONE即编译成功。编译完之后，硬件交换机就会生成一个和 .p4文件同名的交换机程序。
- ![picture 2](./images/p4编译.png)
+
+ ![picture 2](./images/p4_compile.png)
+
 ```shell
 ./run_switchd.sh -p simple_l3
 ```
 这样就把程序烧录到交换机中，交换机就启动了，这个界面就作为一个后台进行管理，关掉的话交换机就关闭了。再复制一个界面进行一些配置。
-![picture 3](./images/p4配置.png)
+
+![picture 3](./images/p4_config.png)
+
 - 可能会出现端口占用的情况，如果报错端口被占用，用sudo lsof -i :9090命令查看占用进程的PID，再用sudo kill -9 <PID>命令来强制终止对应进程，再运行即可
 
 开一新的连接，在新的界面中启动命令行
@@ -1044,7 +1049,7 @@ cd onl-bf-sde
 . set_sde.bash
 ./run_bfshell.sh
 ```
-![picture 4](./images/p4控制.png)
+![picture 4](./images/p4_control.png)
 
 启动交换机端口
 ```shell
@@ -1057,7 +1062,9 @@ port-enb -/-
 show
 ```
 显示端口信息，看到这些端口up就是启动成功了
-![picture 5](./images/p4端口.png)
+
+
+![picture 5](./images/p4_port.png)
 
 - 交换机通常是有32个板卡，每个板卡有4个端口。32/-就是启动32下所有端口，32/0就是启动32下第一个端口。我们的交换机的硬件连接是三个服务器连接在交换机上。210.12.140.209:1021连接在31上，210.12.140.209:1022连接在32上，210.12.140.209:1023连接在28上
 100G为端口速率，必须设置为1，10，25，40，50，100中的一个，而且必须和服务器的网卡速率匹配，使用的交换机上只有-/0端口支持100G速率。
@@ -1111,7 +1118,9 @@ sudo arp -s 192.168.100.3 ec:b9:70:b3:a0:c9
 
 ### 控制面表象下发
 还需要修改一下交换机控制面程序，也就是在交换机上配置arp。
-![picture 6](./images/p4arp.png)
+
+
+![picture 6](./images/p4_arp.png)
 
 再复制一个交换机界面，启动交换机控制命令行，下发表象。
 ```shell
