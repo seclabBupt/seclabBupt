@@ -1,0 +1,9 @@
+../final_adder.v
+../fp32_adder_tree_8_inputs.v
+../fp32_aligner.v
+../fp32_normalizer_rounder.v
+../fp32_packer.v
+../fp32_unpacker.v
+../full_adder.v
+../tb_fp32_adder_tree_8_inputs_softfloat.v
+../wallace_tree_8_inputs.v

@@ -1,0 +1,27 @@
+Dashboard
+
+Date: Sun Jun 22 18:55:59 2025
+
+User: Sunny
+
+Version: O-2018.09-SP2
+Command line: urg -dir /home/Sunny/SMC/fp16_to_fp32_multiplier/fp16_to_fp32_multiplier/sim_output/simv.vdb -format both -report /home/Sunny/SMC/fp16_to_fp32_multiplier/fp16_to_fp32_multiplier/sim_output/coverage_report
+Number of tests: 1
+
+-------------------------------------------------------------------------------
+Total Coverage Summary 
+SCORE  LINE   COND   TOGGLE FSM    BRANCH 
+ 75.90  91.18  80.95  69.58 --      61.90 
+
+
+-------------------------------------------------------------------------------
+Hierarchical coverage data for top-level instances 
+SCORE  LINE   COND   TOGGLE FSM    BRANCH NAME                       
+ 75.90  91.18  80.95  69.58 --      61.90 tb_fp16_to_fp32_multiplier 
+
+
+-------------------------------------------------------------------------------
+Total Module Definition Coverage Summary 
+SCORE  LINE   COND   TOGGLE FSM    BRANCH 
+ 75.90  91.18  80.95  69.58 --      61.90 
+

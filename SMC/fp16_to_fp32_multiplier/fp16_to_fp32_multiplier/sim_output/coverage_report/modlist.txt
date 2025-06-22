@@ -1,0 +1,13 @@
+Design Module List
+
+Total Module Definition Coverage Summary 
+SCORE  LINE   COND   TOGGLE FSM    BRANCH 
+ 75.90  91.18  80.95  69.58 --      61.90 
+
+
+Total modules in report: 2
+-------------------------------------------------------------------------------
+SCORE  LINE   COND   TOGGLE FSM    BRANCH NAME                       
+ 70.28  90.24 --      70.59 --      50.00 tb_fp16_to_fp32_multiplier 
+ 78.54 100.00  80.95  69.34 --      63.89 fp16_to_fp32_multiplier    
+

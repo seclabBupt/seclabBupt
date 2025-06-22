@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<!DOCTYPE cov SYSTEM "ucdb_srcinfo.dtd">
+  <srcinfo name="/home/Sunny/SMC/fp16_to_fp32_multiplier/fp16_to_fp32_multiplier"  >
+    <ucapi_version  major_ver="13"  minor_ver="1"  patch_str="O-2018.09-SP2"  />
+      <fileinfo name="/home/Sunny/SMC/fp16_to_fp32_multiplier/fp16_to_fp32_multiplier/fp16_to_fp32_multiplier.v"  id="0"  />
+      <fileinfo name="/home/Sunny/SMC/fp16_to_fp32_multiplier/fp16_to_fp32_multiplier/tb_fp16_to_fp32_multiplier.v"  id="1"  />
+    </srcinfo>

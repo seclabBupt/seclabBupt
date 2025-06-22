@@ -1,0 +1,10 @@
+/home/sunny/fp32_adder_tree/adder_8/final_adder.v
+/home/sunny/fp32_adder_tree/adder_8/fp32_adder_tree_8_inputs.v
+/home/sunny/fp32_adder_tree/adder_8/fp32_aligner.v
+/home/sunny/fp32_adder_tree/adder_8/fp32_defines.vh
+/home/sunny/fp32_adder_tree/adder_8/fp32_normalizer_rounder.v
+/home/sunny/fp32_adder_tree/adder_8/fp32_packer.v
+/home/sunny/fp32_adder_tree/adder_8/fp32_unpacker.v
+/home/sunny/fp32_adder_tree/adder_8/full_adder.v
+/home/sunny/fp32_adder_tree/adder_8/tb_fp32_adder_tree_8_inputs_softfloat.v
+/home/sunny/fp32_adder_tree/adder_8/wallace_tree_8_inputs.v
