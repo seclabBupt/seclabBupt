@@ -30,6 +30,7 @@ vcs -sverilog +v2k -full64 +fsdb -debug_access+all \
     -kdb \
     -timescale=1ns/1ps \
     +incdir+.. \
+    +define+DUMP_FSDB \
     ../tb_fp32_adder_tree_8_inputs_softfloat.v \
     ../fp32_adder_tree_8_inputs.v \
     ../fp32_unpacker.v \
@@ -51,7 +52,7 @@ fi
 echo "运行仿真..."
 # 确保库路径正确设置
 export LD_LIBRARY_PATH=".:$LD_LIBRARY_PATH"
-# 运行仿真
+
 ./simv_softfloat
 
 if [ $? -ne 0 ]; then
@@ -61,17 +62,6 @@ fi
 
 echo "仿真完成！查看 sim_softfloat.log 文件获取结果。"
 
-# 显示日志文件的前几行和后几行
-echo "=== 仿真结果摘要 ==="
-if [ -f sim_softfloat.log ]; then
-    echo "前10行:"
-    head -10 sim_softfloat.log
-    echo ""
-    echo "后10行:"
-    tail -10 sim_softfloat.log
-else
-    echo "警告: sim_softfloat.log 文件不存在"
-fi
 
 
 

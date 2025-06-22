@@ -75,7 +75,7 @@ LD_PARTIAL_LOADER=ld
 # Partial linking
 LD_PARTIAL=$(LD_PARTIAL_LOADER) -r -o
 ASFLAGS=
-LIBS=-lzerosoft_rt_stubs -lvirsim -lerrorinf -lsnpsmalloc -lvfs /home/Sunny/SMC/fp32_adder_tree/adder_8/sim_output_softfloat/libruntime.so 
+LIBS=-lzerosoft_rt_stubs -lvirsim -lerrorinf -lsnpsmalloc -lvfs /home/Sunny/aiacc/SMC/fp32_adder_tree/adder_8/sim_output_softfloat/libruntime.so 
 # Note: if make gives you errors about include, either get gmake, or
 # replace the following line with the contents of the file filelist,
 # EACH TIME IT CHANGES

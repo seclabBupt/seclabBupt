@@ -1,6 +1,6 @@
 psSimBaseName                      	simv_softfloat
 psLogFileName                      	NULL
-pDaiDir                            	/home/Sunny/SMC/fp32_adder_tree/adder_8/sim_output_softfloat/simv_softfloat.daidir
+pDaiDir                            	/home/Sunny/aiacc/SMC/fp32_adder_tree/adder_8/sim_output_softfloat/simv_softfloat.daidir
 destPath                           	csrc/
 fSharedMaster                      	0
 fHsimPCSharedLibSpecified          	0

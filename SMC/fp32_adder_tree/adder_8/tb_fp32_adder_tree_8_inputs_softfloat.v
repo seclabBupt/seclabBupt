@@ -70,6 +70,14 @@ end
 
 // 打开日志文件并初始化
 initial begin
+    // === 波形文件设置 ===
+    `ifdef DUMP_FSDB
+        $fsdbDumpfile("sim_softfloat.fsdb");
+        $fsdbDumpvars(0, tb_fp32_adder_tree_8_inputs_softfloat);
+        $display("FSDB波形文件已启用: sim_softfloat.fsdb");
+    `endif
+    
+    // === 日志文件设置 ===
     sim_log = $fopen("sim_softfloat.log", "w");
     if (!sim_log) begin
         $display("Error: Could not open sim_softfloat.log");

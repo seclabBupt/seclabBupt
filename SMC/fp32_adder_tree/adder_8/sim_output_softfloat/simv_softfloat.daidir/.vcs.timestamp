@@ -18,7 +18,7 @@
 -Mcsrc=
 -Mexternalobj=
 -Mldflags=-L/usr/lib/x86_64-linux-gnu -L/lib/x86_64-linux-gnu -Wl,--no-as-needed -rdynamic
--Mobjects= /usr/software/vcs2018/vcs/O-2018.09-SP2/linux64/lib/libvirsim.so /usr/software/vcs2018/vcs/O-2018.09-SP2/linux64/lib/liberrorinf.so /usr/software/vcs2018/vcs/O-2018.09-SP2/linux64/lib/libsnpsmalloc.so /usr/software/vcs2018/vcs/O-2018.09-SP2/linux64/lib/libvfs.so /home/Sunny/SMC/fp32_adder_tree/adder_8/sim_output_softfloat/libruntime.so
+-Mobjects= /usr/software/vcs2018/vcs/O-2018.09-SP2/linux64/lib/libvirsim.so /usr/software/vcs2018/vcs/O-2018.09-SP2/linux64/lib/liberrorinf.so /usr/software/vcs2018/vcs/O-2018.09-SP2/linux64/lib/libsnpsmalloc.so /usr/software/vcs2018/vcs/O-2018.09-SP2/linux64/lib/libvfs.so /home/Sunny/aiacc/SMC/fp32_adder_tree/adder_8/sim_output_softfloat/libruntime.so
 -Mout=simv_softfloat
 -Msaverestoreobj=/usr/software/vcs2018/vcs/O-2018.09-SP2/linux64/lib/vcs_save_restore_new.o
 -Msyslibs=/usr/software/verdi/verdi/Verdi_O-2018.09-SP2/share/PLI/VCS/LINUX64/pli.a -ldl
@@ -47,7 +47,7 @@
 /usr/software/vcs2018/vcs/O-2018.09-SP2/linux64/bin/vcs1
 /usr/software/verdi/verdi/Verdi_O-2018.09-SP2/share/PLI/VCS/LINUX64/verdi.tab
 63
-sysc_uni_pwd=/home/Sunny/SMC/fp32_adder_tree/adder_8/sim_output_softfloat
+sysc_uni_pwd=/home/Sunny/aiacc/SMC/fp32_adder_tree/adder_8/sim_output_softfloat
 XDG_SESSION_TYPE=tty
 XDG_SESSION_ID=493
 XDG_SESSION_CLASS=user
@@ -112,16 +112,16 @@ CONDA_DEFAULT_ENV=base
 COLORTERM=truecolor
 0
 12
-1750558654 ../fp32_defines.vh
-1750558654 ../fp32_packer.v
-1750558654 ../fp32_normalizer_rounder.v
-1750558654 ../final_adder.v
-1750558654 ../full_adder.v
-1750558661 ../wallace_tree_8_inputs.v
-1750558654 ../fp32_aligner.v
-1750558654 ../fp32_unpacker.v
-1750558654 ../fp32_adder_tree_8_inputs.v
-1750558661 ../tb_fp32_adder_tree_8_inputs_softfloat.v
+1750592537 ../fp32_defines.vh
+1750592537 ../fp32_packer.v
+1750592537 ../fp32_normalizer_rounder.v
+1750592537 ../final_adder.v
+1750592537 ../full_adder.v
+1750592537 ../wallace_tree_8_inputs.v
+1750592537 ../fp32_aligner.v
+1750592537 ../fp32_unpacker.v
+1750592537 ../fp32_adder_tree_8_inputs.v
+1750592537 ../tb_fp32_adder_tree_8_inputs_softfloat.v
 1550753332 /usr/software/verdi/verdi/Verdi_O-2018.09-SP2/share/PLI/VCS/LINUX64/verdi.tab
 1551421246 /usr/software/vcs2018/vcs/O-2018.09-SP2/linux64/lib/vcsdp_lite.tab
 5
@@ -129,6 +129,6 @@ COLORTERM=truecolor
 1551421792 /usr/software/vcs2018/vcs/O-2018.09-SP2/linux64/lib/liberrorinf.so
 1551421768 /usr/software/vcs2018/vcs/O-2018.09-SP2/linux64/lib/libsnpsmalloc.so
 1551421789 /usr/software/vcs2018/vcs/O-2018.09-SP2/linux64/lib/libvfs.so
-1750589737 /home/Sunny/SMC/fp32_adder_tree/adder_8/sim_output_softfloat/libruntime.so
-1750589740 simv_softfloat.daidir
+1750596108 /home/Sunny/aiacc/SMC/fp32_adder_tree/adder_8/sim_output_softfloat/libruntime.so
+1750596111 simv_softfloat.daidir
 -1 partitionlib

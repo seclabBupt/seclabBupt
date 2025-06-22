@@ -1,7 +1,7 @@
 rc file Version 1.0
 
 [Design]
-COMPILE_PATH=/home/Sunny/SMC/fp32_adder_tree/adder_8/sim_output_softfloat
+COMPILE_PATH=/home/Sunny/aiacc/SMC/fp32_adder_tree/adder_8/sim_output_softfloat
 SystemC=FALSE
 UUM=FALSE
 KDB=TRUE
@@ -13,7 +13,7 @@ ELAB_OPTION=-ssv -ssy
 ELAB=TRUE
 SIMV_WRAPPER=FALSE
 [vcs]
-RUN_ELABCOM=unset TURBO_LOG_DIR ;\rm -rf /home/Sunny/SMC/fp32_adder_tree/adder_8/sim_output_softfloat/simv_softfloat.daidir/elabcomLog ;/usr/software/vcs2018/vcs/O-2018.09-SP2/linux64/bin/elabcom -logdir /home/Sunny/SMC/fp32_adder_tree/adder_8/sim_output_softfloat/simv_softfloat.daidir/elabcomLog  -simvdaidir /home/Sunny/SMC/fp32_adder_tree/adder_8/sim_output_softfloat/simv_softfloat.daidir  -lib /home/Sunny/SMC/fp32_adder_tree/adder_8/sim_output_softfloat/simv_softfloat.daidir/work  -saveLevel  -elab /home/Sunny/SMC/fp32_adder_tree/adder_8/sim_output_softfloat/simv_softfloat.daidir/kdb -simflow -simdir /home/Sunny/SMC/fp32_adder_tree/adder_8/sim_output_softfloat/simv_softfloat.daidir/kdb_libs -top 'tb_fp32_adder_tree_8_inputs_softfloat' -ssv -ssy  -Lf work +disable_message+C00380+C00381 +disable_message+C00388+C00389  >& /dev/null  && echo Success >& /home/Sunny/SMC/fp32_adder_tree/adder_8/sim_output_softfloat/simv_softfloat.daidir/.elabcomReport || echo Fail >& /home/Sunny/SMC/fp32_adder_tree/adder_8/sim_output_softfloat/simv_softfloat.daidir/.elabcomReport; \rm -rf /home/Sunny/SMC/fp32_adder_tree/adder_8/sim_output_softfloat/simv_softfloat.daidir/work.lib++ /home/Sunny/SMC/fp32_adder_tree/adder_8/sim_output_softfloat/simv_softfloat.daidir/kdb_libs/ 
+RUN_ELABCOM=unset TURBO_LOG_DIR ;\rm -rf /home/Sunny/aiacc/SMC/fp32_adder_tree/adder_8/sim_output_softfloat/simv_softfloat.daidir/elabcomLog ;/usr/software/vcs2018/vcs/O-2018.09-SP2/linux64/bin/elabcom -logdir /home/Sunny/aiacc/SMC/fp32_adder_tree/adder_8/sim_output_softfloat/simv_softfloat.daidir/elabcomLog  -simvdaidir /home/Sunny/aiacc/SMC/fp32_adder_tree/adder_8/sim_output_softfloat/simv_softfloat.daidir  -lib /home/Sunny/aiacc/SMC/fp32_adder_tree/adder_8/sim_output_softfloat/simv_softfloat.daidir/work  -saveLevel  -elab /home/Sunny/aiacc/SMC/fp32_adder_tree/adder_8/sim_output_softfloat/simv_softfloat.daidir/kdb -simflow -simdir /home/Sunny/aiacc/SMC/fp32_adder_tree/adder_8/sim_output_softfloat/simv_softfloat.daidir/kdb_libs -top 'tb_fp32_adder_tree_8_inputs_softfloat' -ssv -ssy  -Lf work +disable_message+C00380+C00381 +disable_message+C00388+C00389  >& /dev/null  && echo Success >& /home/Sunny/aiacc/SMC/fp32_adder_tree/adder_8/sim_output_softfloat/simv_softfloat.daidir/.elabcomReport || echo Fail >& /home/Sunny/aiacc/SMC/fp32_adder_tree/adder_8/sim_output_softfloat/simv_softfloat.daidir/.elabcomReport; \rm -rf /home/Sunny/aiacc/SMC/fp32_adder_tree/adder_8/sim_output_softfloat/simv_softfloat.daidir/work.lib++ /home/Sunny/aiacc/SMC/fp32_adder_tree/adder_8/sim_output_softfloat/simv_softfloat.daidir/kdb_libs/ 
 
 [Value]
 WREALX=ffff534e50535f58

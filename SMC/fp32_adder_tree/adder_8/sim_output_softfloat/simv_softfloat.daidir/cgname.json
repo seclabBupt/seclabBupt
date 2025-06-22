@@ -1,10 +1,4 @@
 {
-    "fp32_unpacker": [
-        "fp32_unpacker",
-        "RwnLv",
-        "module",
-        3
-    ],
     "std": [
         "std",
         "reYIK",
@@ -16,6 +10,12 @@
         "t2ze2",
         "module",
         2
+    ],
+    "fp32_unpacker": [
+        "fp32_unpacker",
+        "RwnLv",
+        "module",
+        3
     ],
     "wallace_tree_8_inputs_0000": [
         "wallace_tree_8_inputs_0000",
