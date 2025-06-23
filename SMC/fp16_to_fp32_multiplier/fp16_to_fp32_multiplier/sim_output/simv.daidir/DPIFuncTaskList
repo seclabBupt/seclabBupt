@@ -1,4 +1,0 @@
-import_DPI fp16_inputs_mul_to_fp32_softfloat tb_fp16_to_fp32_multiplier
-import_DPI set_softfloat_rounding_mode tb_fp16_to_fp32_multiplier
-import_DPI clear_softfloat_flags tb_fp16_to_fp32_multiplier
-import_DPI get_softfloat_flags tb_fp16_to_fp32_multiplier

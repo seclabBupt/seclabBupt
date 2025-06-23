@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 # 脚本路径变量
 SCRIPT_DIR=$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)
 PROJ_ROOT=$SCRIPT_DIR
@@ -9,13 +10,16 @@ DPI_C_FILE=$PROJ_ROOT/softfloat_dpi.c
 
 # 编译输出目录
 OUTPUT_DIR=$PROJ_ROOT/sim_output
+
+# 清理并创建输出目录
+rm -rf $OUTPUT_DIR
 mkdir -p $OUTPUT_DIR
+cd $OUTPUT_DIR
 
 # DPI 共享库名称
 DPI_SO_NAME=libruntime.so
 
 # 清理旧的输出文件
-rm -rf $OUTPUT_DIR/*
 rm -f $DPI_SO_NAME
 # 清理 VCS 编译缓存
 rm -rf *.daidir
@@ -45,7 +49,7 @@ vcs -sverilog +v2k -full64 +fsdb -timescale=1ns/1ps \
     -LDFLAGS "-Wl,-rpath,$(pwd)" \
     -LDFLAGS "-L$(pwd)" \
     -LDFLAGS "-lruntime" \
-    -o $OUTPUT_DIR/simv
+    -o simv
 
 if [ $? -ne 0 ]; then
     echo "VCS Verilog 编译失败。"
@@ -54,7 +58,7 @@ fi
 
 # 运行仿真
 echo "正在运行仿真..."
-$OUTPUT_DIR/simv -l $OUTPUT_DIR/sim.log -cm line+cond+fsm+branch+tgl
+./simv -l sim.log -cm line+cond+fsm+branch+tgl
 
 if [ $? -ne 0 ]; then
     echo "VCS 仿真失败。查看 $OUTPUT_DIR/sim.log 获取详情。"
@@ -68,7 +72,7 @@ fi
 # 步骤 3: 生成和查看覆盖率报告
 echo "正在生成覆盖率报告..."
 # 生成HTML格式的覆盖率报告
-urg -dir $OUTPUT_DIR/simv.vdb -format both -report $OUTPUT_DIR/coverage_report
+urg -dir simv.vdb -format both -report coverage_report
 if [ $? -ne 0 ]; then
     echo "覆盖率报告生成失败。"
 else
@@ -77,10 +81,14 @@ else
     echo "文本报告: $OUTPUT_DIR/coverage_report/urgReport/summary.txt"
     
     # 打印文本格式的覆盖率摘要
-    if [ -f "$OUTPUT_DIR/coverage_report/urgReport/summary.txt" ]; then
+    if [ -f "coverage_report/urgReport/summary.txt" ]; then
         echo "覆盖率摘要:"
-        cat $OUTPUT_DIR/coverage_report/urgReport/summary.txt
+        cat coverage_report/urgReport/summary.txt
     fi
 fi
 
+# 回到项目根目录
+cd $PROJ_ROOT
+
 echo "脚本执行完毕。"
+echo "所有仿真结果都在: $OUTPUT_DIR/"

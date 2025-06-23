@@ -8,12 +8,6 @@ module dump;
 
     // 初始化波形转储
     initial begin
-        // WLF格式（ModelSim专有格式）
-        /*if (DUMP_WLF) begin
-            $display("Enabling WLF format dump...");
-            $wlfdumpvars(0, tb_fp16_to_fp32_multiplier);
-        end
-*/
         // VCD格式（标准格式）
         if (DUMP_VCD) begin
             $display("Enabling VCD format dump...");
@@ -30,9 +24,7 @@ module dump;
 
         // 等待一段时间后保存波形
         #1000000;
-        /*if (DUMP_WLF) begin
-            $display("Waveform saved to %s.wlf", WAVE_FILE);
-        end*/
+
         if (DUMP_VCD) begin
             $dumpflush;
             $display("Waveform saved to %s.vcd", WAVE_FILE);

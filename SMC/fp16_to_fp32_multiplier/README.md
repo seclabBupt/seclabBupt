@@ -68,18 +68,17 @@ do run_sim.tcl
 - 记录测试通过/失败情况
 - 格式：测试用例ID + 状态 + 详细信息
 
-## 设计规范
+## 快速入门指南
 
-- 遵循IEEE 754浮点数标准
-- 使用向最近偶数舍入（RNTE）模式
-- 模块化设计，清晰的接口定义
-- 完整的错误处理机制
+### 1. 克隆项目
+```bash
+git clone git@github.com:seclabBupt/aiacc.git
+cd /SMC/fp16_to_fp32_multiplier/fp16_to_fp32_multiplier
+```
 
-## 注意事项
+### 2. 运行仿真
+```bash
+chmod +x run_sim.sh
+./run_sim.sh
+```
 
-1. 输入数据必须在valid_in有效时保持稳定
-2. 输出结果在valid_out有效时可用
-3. 复位信号低电平有效
-4. 时钟频率需要根据具体实现调整
-5. 仿真日志文件会在每次仿真时覆盖
-6. 建议在仿真前备份重要的日志文件 
