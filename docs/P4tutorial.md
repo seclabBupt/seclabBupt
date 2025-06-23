@@ -1358,3 +1358,311 @@ action count_subnet_traffic() {
 扩展性思考：理解计数器规模与硬件资源的权衡关系
 
 通过本实验，你将掌握间接计数器的设计哲学及其在网络监控中的高效应用。
+
+
+## simple_l3_histogram
+
+### 实验目标
+本实验目标是探索如何结合直接计数器和范围匹配功能来创建数据包长度的直方图。
+
+思考：执行计数功能的表应该放置在流水线的哪个位置？是入口(ingress)还是出口(egress)？为什么？
+
+这个表的编程方式有多种选择：可以使用类似SNMP的指数级扩大的范围区间（例如[0..64]、[65..128]、[129..256]等），也可以采用线性区间（例如[64..75]、[74..85]等）。
+
+pkt/send.py脚本演示了如何发送随机长度的数据包。它会发送1000个数据包并记录其长度，以便您将程序运行结果与这些记录进行比对。
+
+### 扩展实验
+
+观察可视化界面：范围匹配表占用了哪种类型的硬件资源？
+
+对比发现所需流水线阶段数是增加了还是保持不变？原因是什么？
+
+
+## simple_l3_lag_ecmp
+
+### 实验目标
+
+本实验旨在学习如何使用动态选择动作配置(action profiles)实现LAG(链路聚合组)和ECMP(等价多路径路由)。我们将基于simple_l3_nexthop.p4程序进行增强，使其能够：
+
+- 为每个下一跳ID关联多个动作数据集
+
+- 通过动作选择器(action selector)动态选择动作
+
+### 主要任务
+1. 转换nexthop表结构
+将普通匹配动作表改为使用action_profile和action_selector的动态表
+2.  实现流哈希计算
+选择适当的字段组合计算哈希值以实现流分配；IPv4/IPv6可分别实现哈希计算(可选)
+3. 测试流量分配
+使用send.py发送多种流特征的数据包；观察各端口的包计数分布
+
+### 测试方法
+#### 手动测试
+1. 使用pm show命令查看端口计数器
+
+```
+bfshell> ucli
+bf-sde> pm
+bf-sde.pm> show 1/-
+```
+
+2. 使用send.py发送测试流量
+
+```
+python send.py <目标IP> <包数量>
+```
+
+#### 自动化测试
+
+使用verify_packet_any_port()验证包分发
+
+### 进阶实验
+1. 动作配置API探索
+- 动态启用/禁用成员
+
+- 观察流量重分布情况
+
+2. 非标准流量分配方法
+- 随机分配：使用TNA的Random extern
+```P4
+Random<bit<14>>() my_rng;
+hash = my_rng.get();
+```
+
+- 轮询分配：(需使用寄存器，较复杂)
+
+3. 权重分配实现
+- 通过重复添加成员实现权重分配
+
+- 修改PTF测试验证权重分布
+
+### 资源分析
+
+- 对比可视化结果，观察新增资源使用情况
+
+- 特别注意action profile和selector的资源占用。
+
+### 实验提示
+
+- 哈希字段选择应考虑实际流量特征
+
+- 测试时注意观察不同流类型的分布均匀性
+
+- 权重实现时注意成员配置比例
+
+通过本实验，您将掌握现代交换芯片实现高级负载均衡功能的核心技术。
+
+## simple_l3_mcast
+### 实验目标
+学习使用Tofino的PRE(数据包复制引擎)实现组播功能，掌握从入站控制到出站处理的完整组播工作流。
+### 核心实现步骤
+1. 入站控制层配置
+```P4
+// 在ipv4_host和ipv4_lpm表中添加组播动作
+action set_multicast(bit<16> mcast_grp) {
+    ig_intr_md_for_tm.mcast_grp_a = mcast_grp;
+}
+
+// 表项匹配时调用组播动作
+table ipv4_lpm {
+    actions = {
+        set_multicast;  // 新增组播动作
+        ipv4_forward;
+        drop;
+    }
+    // ...其他配置
+}
+```
+
+2. PRE引擎编程
+使用Python控制平面API配置组播组
+```python
+# 创建组播组
+mc.conn_mgr.mc.create_group(device, mc_group_id)
+
+# 创建组播节点(注意端口号转换)
+port_list = [devport_to_mcport(p) for p in target_ports]
+mc_bitmap = devports_to_mcbitmap(port_list)
+mc.conn_mgr.mc.create_node(device, rid, mc_bitmap)
+
+# 关联节点与组
+mc.conn_mgr.mc.associate_node(device, mc_group_id, rid)
+```
+
+3.出站处理优化
+```P4
+// 使用出站元数据区分不同复制包
+control Egress(...) {
+    action modify_based_on_rid(bit<16> rid) {
+        // 根据rid进行不同修改
+    }
+    
+    table egress_processing {
+        key = {
+            eg_intr_md.egress_rid : exact;
+            eg_intr_md.egress_port : exact;
+        }
+        actions = { modify_based_on_rid; ... }
+    }
+    
+    apply {
+        if(eg_intr_md.egress_rid_first) {
+            // 组播组级别的计数处理
+        }
+        egress_processing.apply();
+    }
+}
+```
+
+### 关键问题解决方案
+1. 校验和问题修复
+```P4
+control Egress(...) {
+    apply {
+        if(ig_intr_md_for_tm.mcast_grp_a != 0) {
+            // 组播包需要重新计算校验和
+            ipv4.hdrChecksum = ipv4_checksum.update();
+            if(udp.isValid()) {
+                udp.checksum = udp_checksum.update();
+            }
+        }
+    }
+}
+```
+
+2. LAG实现进阶
+- PRE层LAG配置
+```python
+# 创建LAG组
+mc.conn_mgr.mc.create_lag(device, lag_id)
+
+# 添加成员端口
+for port in lag_members:
+    mc_port = devport_to_mcport(port)
+    mc.conn_mgr.mc.create_lag_member(device, lag_id, mc_port)
+```
+
+- P4程序需要相应修改：
+1. 添加LAG选择逻辑
+2. 可能需要额外的负载均衡哈希计算
+
+### 实验建议
+1. 端口号转换工具
+```python
+from run_pd_rpc import devport_to_mcport, devports_to_mcbitmap
+
+# 示例转换
+mc_port = devport_to_mcport(128)  # 管道0端口0
+bitmap = devports_to_mcbitmap([1, 2, 3])
+```
+
+2. 调试技巧
+- 使用egress_rid_first标识首包进行组级统计
+- 通过bfshell的tm.mc命令查看PRE状态
+
+3. 流量观察
+```bash
+# 在bfshell中查看组播统计
+bfshell> tm.mc.group_stats_get <group_id>
+```
+
+通过本实验，您将深入理解Tofino芯片的组播处理架构，掌握从数据平面到控制平面的完整组播实现方案。
+
+
+## simple_l3_mirror
+
+### 实验目标
+掌握Tofino设备的镜像功能，实现数据包的镜像复制（用于远程观测或发送至CPU）.
+
+### 核心实现步骤
+
+1. 基础镜像配置（入口镜像）
+```p4
+// 定义镜像会话动作
+action mirror_packet(mirror_id_t session_id) {
+    ig_intr_md.force_mirror = true;
+    ig_intr_md.mirror_session_id = session_id;
+}
+
+// 在需要镜像的表项中调用
+table monitor_table {
+    actions = {
+        mirror_packet;
+        normal_forwarding;
+        drop;
+    }
+    // ... 表配置
+}
+```
+
+2. 出口镜像扩展实现（进阶）
+```P4
+// 使用clone_e2e实现出口镜像
+action egress_mirror(mirror_id_t session_id) {
+    eg_intr_md_for_tm.mirror_session = session_id;
+    eg_intr_md_for_tm.mirror_enable = true;
+}
+
+control Egress(...) {
+    apply {
+        if(/* 镜像条件 */) {
+            egress_mirror(MIRROR_SESSION_EGRESS);
+        }
+    }
+}
+```
+
+3. 控制平面配置示例
+```python
+# 配置镜像会话
+def setup_mirror_session(conn_mgr, session_id, dest_port, dir="INGRESS"):
+    if dir == "INGRESS":
+        conn_mgr.mirror.session_create(
+            session_id,
+            destination_port=dest_port,
+            direction=conn_mgr.mirror.DIRECTION_INGRESS
+        )
+    else:
+        # 出口镜像需要额外配置
+        conn_mgr.mirror.session_create(
+            session_id,
+            destination_port=dest_port,
+            direction=conn_mgr.mirror.DIRECTION_EGRESS,
+            egress_type=conn_mgr.mirror.EGRESS_TYPE_TRUE
+        )
+
+# 调用示例
+setup_mirror_session(conn_mgr, 1, 128)  # 入口镜像到端口128
+setup_mirror_session(conn_mgr, 2, 129, "EGRESS") # 出口镜像
+```
+
+4. 镜像数据包处理要点
+- 元数据保留：镜像包会保留原始包的元数据
+
+- 性能影响：高频镜像可能影响转发性能
+
+- 多层镜像：支持嵌套镜像（镜像的镜像）
+
+### 验证方法
+1. 端口统计检查
+
+```bash
+bfshell> pm show
+# 观察目标镜像端口的RX计数增长
+```
+
+2. 数据包捕获
+
+```bash
+# 在镜像目标端口抓包
+tcpdump -i eth1 -nn -w mirror.pcap
+```
+
+### 进阶实验建议
+- 条件镜像：基于特定流特征触发镜像
+
+- 采样镜像：每N个包镜像1个（使用寄存器实现计数）
+
+- CPU镜像：配置镜像目标为CPU端口
+
+通过本实验，您将掌握数据平面可编程镜像的核心技术，为网络监控和故障排查提供强大工具。
