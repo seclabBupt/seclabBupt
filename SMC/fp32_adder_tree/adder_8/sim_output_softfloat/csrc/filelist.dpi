@@ -1,4 +1,0 @@
-DPI_STUB_OBJS += ./../simv_softfloat.daidir/vc_hdrs.o
-./../simv_softfloat.daidir/vc_hdrs.o: ./../simv_softfloat.daidir/vc_hdrs.c
-	@$(CC) -I/usr/software/vcs2018/vcs/O-2018.09-SP2/include  -pipe -fPIC -I/home/Sunny/SMC/berkeley-softfloat-3-master/source/include    -I/usr/software/vcs2018/vcs/O-2018.09-SP2/include  -fPIC -c -o ./../simv_softfloat.daidir/vc_hdrs.o ./../simv_softfloat.daidir/vc_hdrs.c
-	@strip -g ./../simv_softfloat.daidir/vc_hdrs.o

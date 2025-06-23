@@ -1,6 +1,0 @@
-@elabcom rc file Version 1.0
-[oh]
-invokeDir = /home/Sunny/aiacc/SMC/fp32_adder_tree/adder_8/sim_output_softfloat
-hostCommand = -lib /home/Sunny/aiacc/SMC/fp32_adder_tree/adder_8/sim_output_softfloat/simv_softfloat.daidir/work -saveLevel -elab /home/Sunny/aiacc/SMC/fp32_adder_tree/adder_8/sim_output_softfloat/simv_softfloat.daidir/kdb -simflow -simdir /home/Sunny/aiacc/SMC/fp32_add\
-er_tree/adder_8/sim_output_softfloat/simv_softfloat.daidir/kdb_libs -top tb_fp32_adder_tree_8_inputs_softfloat -Lf work +disable_message+C00380+C00381 +disable_message+C00388+C00389 -SNPS_ELABCOM -saveElab
-simType = VCS
