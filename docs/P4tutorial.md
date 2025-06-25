@@ -1666,3 +1666,170 @@ tcpdump -i eth1 -nn -w mirror.pcap
 - CPU镜像：配置镜像目标为CPU端口
 
 通过本实验，您将掌握数据平面可编程镜像的核心技术，为网络监控和故障排查提供强大工具。
+
+
+
+## simple_l2
+### 实验目标
+开发高级API来动态控制一个支持VLAN的简易L2转发平面，实现：
+
+- MAC地址学习
+
+- 老化机制
+
+- VLAN内未知地址的泛洪
+
+### 核心架构
+
+1. 数据平面关键组件
+
+```p4
+#define AGEING_TIME 300  // 300秒老化时间
+
+table mac_learning_table {
+    key = {
+        vlan.vid : exact;
+        ethernet.srcAddr : exact;
+    }
+    actions = {
+        update_timestamp;
+        no_op;
+    }
+}
+
+table mac_forwarding_table {
+    key = {
+        vlan.vid : exact;
+        ethernet.dstAddr : exact;
+    }
+    actions = {
+        forward_to_port;
+        flood_in_vlan;  // VLAN内泛洪
+        send_to_cpu;    // 特殊处理
+    }
+    const default_action = flood_in_vlan;
+}
+```
+
+2. 控制平面API设计
+
+```python
+class L2Controller:
+    def __init__(self, bfrt_info):
+        # 初始化表对象
+        self.mac_table = bfrt_info.table_get("mac_forwarding_table")
+        self.learn_table = bfrt_info.table_get("mac_learning_table")
+        
+        # 设置老化线程
+        self.ageing_thread = threading.Thread(target=self._age_entries)
+        self.ageing_thread.daemon = True
+        self.ageing_thread.start()
+
+    def _age_entries(self):
+        """后台老化线程"""
+        while True:
+            time.sleep(60)  # 每分钟检查一次
+            self._remove_stale_entries()
+
+    def add_static_entry(self, vlan, mac, port):
+        """添加静态转发表项"""
+        self.mac_table.entry_add(
+            [self.mac_table.make_key(
+                KeyTuple('vlan.vid', vlan),
+                KeyTuple('ethernet.dstAddr', mac)
+            ],
+            [self.mac_table.make_data(
+                DataTuple('port', port))
+            ]
+        )
+```
+
+### 关键实现机制
+1. MAC学习流程
+```P4
+control Ingress {
+    apply {
+        if (ethernet.isValid() && vlan.isValid()) {
+            // 源MAC学习
+            mac_learning_table.apply();
+            
+            // 目标MAC查找
+            mac_forwarding_table.apply();
+        }
+    }
+}
+```
+
+2. 老化机制实现
+
+```python
+def _remove_stale_entries(self):
+    """删除超时表项"""
+    now = time.time()
+    resp = self.learn_table.entry_get()
+    
+    for entry in resp:
+        vlan = entry.key['vlan.vid']
+        mac = entry.key['ethernet.srcAddr']
+        timestamp = entry.data['timestamp']
+        
+        if now - timestamp > AGEING_TIME:
+            self.mac_table.entry_del(
+                [self.mac_table.make_key(
+                    KeyTuple('vlan.vid', vlan),
+                    KeyTuple('ethernet.dstAddr', mac)
+                )]
+            )
+```
+
+### 实现验证方法
+1. 基础功能测试
+
+```bash
+# 添加静态条目
+python controller.py add-static 100 00:11:22:33:44:55 1
+
+# 查看转发表
+python controller.py show-table
+```
+
+2. 动态学习验证
+
+- 在端口1发送源MAC为00:11:22:33:44:55的包
+
+- 检查转发表是否自动学习
+
+- 5分钟后验证老化机制是否生效
+
+### 进阶实验建议
+- VLAN隔离测试：验证不同VLAN的广播域隔离
+
+- 性能优化：实现批量老化操作减少控制平面负载
+
+- 安全扩展：添加MAC防漂移保护机制
+
+这个实验框架提供了L2网络的核心功能，可作为更复杂功能的开发基础。通过实践将深入理解交换芯片的数据平面编程范式。
+
+
+## simple_l3_vrf
+
+### 队列管理lab
+
+相关文件：
+
+` BMv2`
+
+- Cache：算力调度
+
+- Codel：Codel算法
+- NWHHD：Count-Min Sketch计数
+- PI：PI算法
+- RED：RED算法
+- aqm_v1/aqm_dqn：AQM算法
+- cfn_bgp：BGP协议配置
+- multi_queue_v1：多队列管理算法
+
+` Tofino`
+
+- tofino_example：官方代码示例
+- tofino：硬件交换机命令、三层转发、算力调度
