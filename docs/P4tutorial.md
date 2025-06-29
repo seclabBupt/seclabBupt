@@ -12,7 +12,7 @@
 
 ---
 
-
+（目前，基于已有平台，如下第一部分环境安装内容，仅供参考）
 
 ## 1. p4 环境安装 
 
@@ -1748,7 +1748,7 @@ class L2Controller:
 1. MAC学习流程
 ```P4
 control Ingress {
-    apply {
+    apply {``
         if (ethernet.isValid() && vlan.isValid()) {
             // 源MAC学习
             mac_learning_table.apply();
